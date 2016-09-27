@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System;
+using MongoRepository;
 
 namespace CustomerOrdersApi
 {
-    public class CustomerOrder
+    // [CollectionName("CustomerOrder")]
+    public class CustomerOrder : Entity
     {
-        public int Id { get; set; }
-        private string CustomerId  { get; set; }
+        public string CustomerId  { get; set; }
         private Customer Customer { get; set; }
         private Address Address { get; set; }
         private Card Card { get; set; }

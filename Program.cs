@@ -1,6 +1,8 @@
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
+using MongoRepository;
 
 namespace CustomerOrdersApi
 {
@@ -12,7 +14,7 @@ namespace CustomerOrdersApi
                 .AddCommandLine(args)
                 .AddEnvironmentVariables(prefix: "ASPNETCORE_")
                 .Build();
-            
+
             var host = new WebHostBuilder()
                 .UseConfiguration(config)
                 .UseKestrel()
