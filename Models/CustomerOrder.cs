@@ -4,7 +4,7 @@ using MongoRepository;
 
 namespace CustomerOrdersApi
 {
-    // [CollectionName("CustomerOrder")]
+    [CollectionName("CustomerOrder")]
     public class CustomerOrder : Entity
     {
         public string CustomerId  { get; set; }
