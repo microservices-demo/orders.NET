@@ -1,17 +1,21 @@
 using System.Collections.Generic;
+
 using Microsoft.AspNetCore.Mvc;
 using MongoRepository;
+using Halcyon.Web.HAL;
+using Halcyon.HAL.Attributes;
+using Halcyon.HAL;
 
 namespace CustomerOrdersApi
 {
     [Route("/orders")]
-    public class ProductsController: ControllerBase
+    public class ProductsController: Controller
     {
         private MongoRepository<CustomerOrder> customerOrderRepository = 
             new MongoRepository<CustomerOrder>("mongodb://localhost:27017/data", "CustomerOrder");
         
         [HttpGet]
-        public IEnumerable<CustomerOrder> Get()
+        public IActionResult Get()
         {
             IEnumerator<CustomerOrder> enumerator = customerOrderRepository.GetEnumerator();
             List<CustomerOrder> result = new List<CustomerOrder>();
@@ -20,14 +24,25 @@ namespace CustomerOrdersApi
                 result.Add(enumerator.Current);
                 // Perform logic on the item
             }
-            return result;
+        
+            var model = new {
+                _embedded = new {
+                    customerOrders = result
+                }
+            };
+
+            return this.HAL(model, new Link[] {
+                new Link("self", "/orders"),
+                new Link("profile", "profile/orders"),
+                new Link("search", "orders/search")
+            });
         }
         // GET api/values/5
-    [HttpGet("{id}")]
-    public string Get(int id)
-    {
-        return "value";
-    }
+        [HttpGet("{id}")]
+        public string Get(int id)
+        {
+            return "value";
+        }
 
         [HttpPost]
         public IActionResult Create([FromBody] CustomerOrder item)
@@ -56,7 +71,7 @@ namespace CustomerOrdersApi
 
             // TodoItems.Update(item);
             return new NoContentResult();
-}
+        }
     }
 
     
