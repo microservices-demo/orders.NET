@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace CustomerOrdersApi
+namespace CustomerOrdersApi.Model
 {
     public class Customer
     {

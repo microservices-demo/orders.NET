@@ -1,4 +1,4 @@
-namespace CustomerOrdersApi
+namespace CustomerOrdersApi.Model
 {
     public class Item
     {   

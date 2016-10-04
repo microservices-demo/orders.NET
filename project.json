@@ -18,7 +18,8 @@
     "Binbin.MongoRepository": "1.0.1",
     "Halcyon.Mvc": "2.2.0",
     "Microsoft.Extensions.Configuration.FileProviderExtensions" : "1.0.0-rc1-final",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc1-final"
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc1-final",
+    "HalKit": "0.8.0"
   },
 
   "tools": {

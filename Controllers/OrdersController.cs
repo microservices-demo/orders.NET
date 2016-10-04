@@ -2,15 +2,28 @@ using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Mvc;
 using MongoRepository;
-using Halcyon.Web.HAL;
-using Halcyon.HAL.Attributes;
 using Halcyon.HAL;
+using Halcyon.HAL.Attributes;
+using Halcyon.Web.HAL;
+using CustomerOrdersApi.Model;
 
 namespace CustomerOrdersApi
 {
-    [Route("/orders")]
-    public class ProductsController: Controller
+    [HalModel("~/orders", true)]
+    [HalLink("self", "/orders")]
+    [HalLink("profile", "profile/orders")]
+    [HalLink("search", "orders/search")]
+    public class OrdersModel
     {
+        [HalEmbedded("customerOrders")]
+        public List<CustomerOrder> Orders { get; set; } = new List<CustomerOrder>();
+    }
+
+   [Route("/orders")]
+   public class ProductsController: Controller
+    {
+
+        private HALAttributeConverter converter = new HALAttributeConverter();
         private MongoRepository<CustomerOrder> customerOrderRepository = 
             new MongoRepository<CustomerOrder>("mongodb://localhost:27017/data", "CustomerOrder");
         
@@ -18,18 +31,11 @@ namespace CustomerOrdersApi
         public IActionResult Get()
         {
             IEnumerator<CustomerOrder> enumerator = customerOrderRepository.GetEnumerator();
-            List<CustomerOrder> result = new List<CustomerOrder>();
+            OrdersModel model = new OrdersModel();
             while (enumerator.MoveNext())
             {
-                result.Add(enumerator.Current);
-                // Perform logic on the item
+                model.Orders.Add(enumerator.Current);
             }
-        
-            var model = new {
-                _embedded = new {
-                    customerOrders = result
-                }
-            };
 
             return this.HAL(model, new Link[] {
                 new Link("self", "/orders"),
@@ -51,6 +57,23 @@ namespace CustomerOrdersApi
             {
                 return BadRequest();
             }
+            // List<Task> tasks = new List<Task>();
+            // tasks.Add(Task.Factory.StartNew(o =>
+            //     {
+            //         int value = (int)o;
+            //     }, i);
+
+
+            // var result = Task.Factory.ContinueWhenAll(
+            //     new[] { getPlatformTask, getUserTask },
+            //     _ =>
+            //     {
+            //         // process the results
+
+            //         return base.SendAsync(request, cancellationToken);
+            //     });
+
+            // return result.Unwrap();
             // TodoItems.Add(item);
             return CreatedAtRoute("GetTodo", new { id = item.Id }, item);
         }
