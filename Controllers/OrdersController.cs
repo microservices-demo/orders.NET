@@ -6,17 +6,33 @@ using Halcyon.HAL;
 using Halcyon.HAL.Attributes;
 using Halcyon.Web.HAL;
 using CustomerOrdersApi.Model;
+using System.Net;
+using Newtonsoft.Json;
 
 namespace CustomerOrdersApi
 {
-    [HalModel("~/orders", true)]
+    [HalModel("~/", true)]
     [HalLink("self", "/orders")]
     [HalLink("profile", "profile/orders")]
     [HalLink("search", "orders/search")]
     public class OrdersModel
     {
+        [JsonProperty("page")]
+        public ResultPage Page { get; set; } = new ResultPage();
+        [JsonIgnore]
         [HalEmbedded("customerOrders")]
         public List<CustomerOrder> Orders { get; set; } = new List<CustomerOrder>();
+        public class ResultPage
+        {
+            [JsonProperty("size")]
+            public int Size { get; set; } = 20;
+            [JsonProperty("totalElements")]
+            public int TotalElements { get; set; }
+            [JsonProperty("totalPages")]
+            public int TotalPages { get; set; }
+            [JsonProperty("number")]
+            public int Number { get; set; }
+        }
     }
 
    [Route("/orders")]
@@ -36,12 +52,7 @@ namespace CustomerOrdersApi
             {
                 model.Orders.Add(enumerator.Current);
             }
-
-            return this.HAL(model, new Link[] {
-                new Link("self", "/orders"),
-                new Link("profile", "profile/orders"),
-                new Link("search", "orders/search")
-            });
+            return this.HAL(converter.Convert(model),  HttpStatusCode.OK);
         }
         // GET api/values/5
         [HttpGet("{id}")]
