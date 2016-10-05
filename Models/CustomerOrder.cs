@@ -3,7 +3,6 @@ using System;
 using MongoRepository;
 using Newtonsoft.Json;
 using Halcyon.HAL.Attributes;
-
 namespace CustomerOrdersApi.Model
 {
     [CollectionName("CustomerOrder")]
@@ -14,16 +13,16 @@ namespace CustomerOrdersApi.Model
     {
         [JsonIgnore]
         public string CustomerId  { get; set; }
-        private Customer Customer { get; set; }
-        private Address Address { get; set; }
-        private Card Card { get; set; }
+        public Customer Customer { get; set; }
+        public Address Address { get; set; }
+        public Card Card { get; set; }
         [HalEmbedded("items")]
-        private List<Item> Items { get; set; } = new List<Item>{};
+        public List<Item> Items { get; set; } = new List<Item>{};
         [JsonIgnore]
-        private Shipment Shipment { get; set; }
+        public Shipment Shipment { get; set; }
         [JsonIgnore]
-        private DateTime Date { get;  set; } = DateTime.Now;
+        public DateTime Date { get;  set; } = DateTime.Now;
         [JsonIgnore]
-        private float Total { get; set; }
+        public float Total { get; set; }
     }
 }

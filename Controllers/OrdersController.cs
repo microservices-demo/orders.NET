@@ -8,6 +8,12 @@ using Halcyon.Web.HAL;
 using CustomerOrdersApi.Model;
 using System.Net;
 using Newtonsoft.Json;
+using HalKit;
+using System.Threading.Tasks;
+using System.Runtime.Serialization;
+using HalKit.Models.Response;
+using System;
+using System.Threading;
 
 namespace CustomerOrdersApi
 {
@@ -38,8 +44,9 @@ namespace CustomerOrdersApi
    [Route("/orders")]
    public class ProductsController: Controller
     {
-
+        private HalClient client = new HalClient(new HalConfiguration());
         private HALAttributeConverter converter = new HALAttributeConverter();
+
         private MongoRepository<CustomerOrder> customerOrderRepository = 
             new MongoRepository<CustomerOrder>("mongodb://localhost:27017/data", "CustomerOrder");
         
@@ -62,31 +69,58 @@ namespace CustomerOrdersApi
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] CustomerOrder item)
+        public IActionResult Create([FromBody] NewOrderResource item)
         {
             if (item == null)
             {
                 return BadRequest();
             }
-            // List<Task> tasks = new List<Task>();
-            // tasks.Add(Task.Factory.StartNew(o =>
-            //     {
-            //         int value = (int)o;
-            //     }, i);
 
+            List<Task> tasks = new List<Task>();
+            Address address = null;
+            Customer customer = null;
+            Card card = null;
+            List<Item> items = null;
 
-            // var result = Task.Factory.ContinueWhenAll(
-            //     new[] { getPlatformTask, getUserTask },
-            //     _ =>
-            //     {
-            //         // process the results
+            tasks.Add(Task.Factory.StartNew(async () =>
+            {
+                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Address.AbsolutePath, IsTemplated = false};
+                address = await client.GetAsync<Address>(link);;
+            }));
+            tasks.Add(Task.Factory.StartNew(async () =>
+            {
+                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Customer.AbsolutePath, IsTemplated = false};
+                customer = await client.GetAsync<Customer>(link);;
+            }));
+            tasks.Add(Task.Factory.StartNew(async () =>
+            {
+                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Card.AbsolutePath, IsTemplated = false};
+                card = await client.GetAsync<Card>(link);;
+            }));
+            tasks.Add(Task.Factory.StartNew(async () =>
+            {
+                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Items.AbsolutePath, IsTemplated = false};
+                items = await client.GetAsync<List<Item>>(link);;
+            }));
 
-            //         return base.SendAsync(request, cancellationToken);
-            //     });
+            Task finalTask = Task.Factory.ContinueWhenAll(
+                tasks.ToArray(),
+                _ =>
+                {
+                });
+            finalTask.Wait();
 
+            float amount = calculateTotal(items);
+
+            CustomerOrder order = new CustomerOrder();
+            order.Address = address;
+            order.Card  = card;
+            order.Customer = customer;
+            order.Items = items;
+            
             // return result.Unwrap();
             // TodoItems.Add(item);
-            return CreatedAtRoute("GetTodo", new { id = item.Id }, item);
+            return CreatedAtRoute("GetTodo", new { id = order.Id }, order);
         }
 
         [HttpPut("{id}")]
@@ -105,6 +139,14 @@ namespace CustomerOrdersApi
 
             // TodoItems.Update(item);
             return new NoContentResult();
+        }
+
+        private float calculateTotal(List<Item> items) {
+            float amount = 0F;
+            float shipping = 4.99F;
+            items.ForEach(item => amount += item.Quantity * item.UnitPrice);
+            amount += shipping;
+            return amount;
         }
     }
 

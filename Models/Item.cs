@@ -2,9 +2,9 @@ namespace CustomerOrdersApi.Model
 {
     public class Item
     {   
-        private string Id { get; set; }
-        private string ItemId { get; set; }
-        private int Quantity { get; set; }
-        private float UnitPrice { get; set; }
+        public string Id { get; set; }
+        public string ItemId { get; set; }
+        public int Quantity { get; set; }
+        public float UnitPrice { get; set; }
     }
 }
