@@ -2,7 +2,7 @@ namespace CustomerOrdersApi
 {
     public class Shipment
     {
-        private string Id { get; set; }
-        private string Name { get; set; }
+        public string Id { get; set; } = System.Guid.NewGuid().ToString();
+        public string Name { get; set; }
     }
 }

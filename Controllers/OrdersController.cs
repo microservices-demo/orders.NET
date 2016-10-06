@@ -14,6 +14,8 @@ using System.Runtime.Serialization;
 using HalKit.Models.Response;
 using System;
 using System.Threading;
+using System.Text.RegularExpressions;
+
 
 namespace CustomerOrdersApi
 {
@@ -85,22 +87,22 @@ namespace CustomerOrdersApi
             tasks.Add(Task.Factory.StartNew(async () =>
             {
                 HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Address.AbsolutePath, IsTemplated = false};
-                address = await client.GetAsync<Address>(link);;
+                address = await client.GetAsync<Address>(link);
             }));
             tasks.Add(Task.Factory.StartNew(async () =>
             {
                 HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Customer.AbsolutePath, IsTemplated = false};
-                customer = await client.GetAsync<Customer>(link);;
+                customer = await client.GetAsync<Customer>(link);
             }));
             tasks.Add(Task.Factory.StartNew(async () =>
             {
                 HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Card.AbsolutePath, IsTemplated = false};
-                card = await client.GetAsync<Card>(link);;
+                card = await client.GetAsync<Card>(link);
             }));
             tasks.Add(Task.Factory.StartNew(async () =>
             {
                 HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Items.AbsolutePath, IsTemplated = false};
-                items = await client.GetAsync<List<Item>>(link);;
+                items = await client.GetAsync<List<Item>>(link);
             }));
 
             Task finalTask = Task.Factory.ContinueWhenAll(
@@ -110,17 +112,51 @@ namespace CustomerOrdersApi
                 });
             finalTask.Wait();
 
-            float amount = calculateTotal(items);
+            float amount = CalculateTotal(items);
 
-            CustomerOrder order = new CustomerOrder();
-            order.Address = address;
-            order.Card  = card;
-            order.Customer = customer;
-            order.Items = items;
+            PaymentRequest paymentRequest = new PaymentRequest() {
+                Address = address,
+                Card = card,
+                Customer = customer,
+                Amount = amount
+            };
+
+            PaymentResponse paymentResponse = null;
+            Task PaymentResponseTask = Task.Factory.StartNew(async () =>
+            {
+                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef =  "http://payment/paymentAuth", IsTemplated = false};
+                paymentResponse = await client.PostAsync<PaymentResponse>(link, paymentRequest);
+            });
+            PaymentResponseTask.Wait();
             
-            // return result.Unwrap();
-            // TodoItems.Add(item);
+            if(!paymentResponse.Authorized) {
+                return BadRequest();
+            }
+
+            string ACustomerId = customer.Id; //ParseId(customer.I)
+            Shipment Shipment = null;
+            Task ShipmentTask = Task.Factory.StartNew(async () =>
+            {
+                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef =  "http://shipping/shipping", IsTemplated = false};
+                Shipment AShipment = new Shipment() {
+                    Name = ACustomerId
+                };
+                Shipment = await client.PostAsync<Shipment>(link, AShipment);
+            });
+            ShipmentTask.Wait();
+
+            CustomerOrder order = new CustomerOrder() {
+                CustomerId = ACustomerId,
+                Address = address,
+                Card  = card,
+                Customer = customer,
+                Items = items,
+                Total = amount,
+                Shipment = Shipment
+            };
+            customerOrderRepository.Add(order);
             return CreatedAtRoute("GetTodo", new { id = order.Id }, order);
+
         }
 
         [HttpPut("{id}")]
@@ -141,14 +177,25 @@ namespace CustomerOrdersApi
             return new NoContentResult();
         }
 
-        private float calculateTotal(List<Item> items) {
+        private float CalculateTotal(List<Item> items) {
             float amount = 0F;
             float shipping = 4.99F;
             items.ForEach(item => amount += item.Quantity * item.UnitPrice);
             amount += shipping;
             return amount;
         }
-    }
-
     
+
+        private string ParseId(string href) {
+            string pattern = @"[\\w-]+$";
+
+            Regex r = new Regex(pattern);
+            Match match = r.Match(href);
+            if (match.Success)
+            {
+                return match.Value;
+            }
+            throw new System.ArgumentException("No match found", href);
+        }
+    }
 }

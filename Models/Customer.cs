@@ -4,11 +4,11 @@ namespace CustomerOrdersApi.Model
 {
     public class Customer
     {
-        private string Id { get; set; }
-        private string FirstName { get; set; }
-        private string LastName { get; set; }
-        private string Username { get; set; }
-        private List<Address> Addresses { get; set; } = new List<Address>{};
-        private List<Card> Cards { get; set; } = new List<Card>{};
+        public string Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Username { get; set; }
+        public List<Address> Addresses { get; set; } = new List<Address>{};
+        public List<Card> Cards { get; set; } = new List<Card>{};
     }
 }
