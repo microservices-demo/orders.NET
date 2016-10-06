@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Mvc;
 using MongoRepository;
-using Halcyon.HAL;
 using Halcyon.HAL.Attributes;
 using Halcyon.Web.HAL;
 using CustomerOrdersApi.Model;
@@ -10,10 +9,8 @@ using System.Net;
 using Newtonsoft.Json;
 using HalKit;
 using System.Threading.Tasks;
-using System.Runtime.Serialization;
-using HalKit.Models.Response;
+using Microsoft.Extensions.Options;
 using System;
-using System.Threading;
 
 namespace CustomerOrdersApi
 {
@@ -44,12 +41,24 @@ namespace CustomerOrdersApi
    [Route("/orders")]
    public class ProductsController: Controller
     {
+        private readonly IOptions<AppSettings> _optionsAccessor;
+
         private HalClient client = new HalClient(new HalConfiguration());
         private HALAttributeConverter converter = new HALAttributeConverter();
 
         private MongoRepository<CustomerOrder> customerOrderRepository = 
             new MongoRepository<CustomerOrder>("mongodb://localhost:27017/data", "CustomerOrder");
         
+        public IActionResult Index() => View(_optionsAccessor.Value);
+
+        public ProductsController(IOptions<AppSettings> optionsAccessor)
+        {
+            _optionsAccessor = optionsAccessor;
+            Console.WriteLine("aaa");
+            Console.WriteLine(optionsAccessor.Value.BaseUrls.Shipping);
+            Console.WriteLine(optionsAccessor.ToString());
+        }
+
         [HttpGet]
         public IActionResult Get()
         {
@@ -103,11 +112,7 @@ namespace CustomerOrdersApi
                 items = await client.GetAsync<List<Item>>(link);;
             }));
 
-            Task finalTask = Task.Factory.ContinueWhenAll(
-                tasks.ToArray(),
-                _ =>
-                {
-                });
+            Task finalTask = Task.Factory.ContinueWhenAll(tasks.ToArray(), _ => {});
             finalTask.Wait();
 
             float amount = calculateTotal(items);

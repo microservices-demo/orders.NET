@@ -1,4 +1,3 @@
-using System.Buffers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using System;
 
 namespace CustomerOrdersApi
 {
@@ -16,9 +16,15 @@ namespace CustomerOrdersApi
         public Startup(IHostingEnvironment env) {
             // Set up configuration sources.
             var builder = new ConfigurationBuilder()
-                // .AddJsonFile("appsettings.json")
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+            Console.WriteLine("sss");
+            Console.WriteLine(Configuration["AppSettings:BaseUrls:Shipping"]);
+            Console.WriteLine("sss2");
+            Console.WriteLine(Configuration.ToString());
         }
         public IConfigurationRoot Configuration { get; set; }
 
@@ -27,7 +33,19 @@ namespace CustomerOrdersApi
         public void ConfigureServices(IServiceCollection services)
         {
             var outputSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
-            services
+
+// Configuration.GetSection("BaseUrls").Value("Shipping");
+
+            services.AddOptions()
+                // .Configure<AppSettings>(Configuration.GetSection("AppSettings"))
+                // .Configure<AppSettings>(appSettings =>
+                //     {
+                //         appSettings.BaseUrls = new BaseUrls()
+                //         {
+                //             Shipping = new Uri(Configuration["AppSettings:BaseUrls:Shipping"]),
+                //             Payment = new Uri(Configuration["AppSettings:BaseUrls:Payment"]),
+                //         };
+                //     })
                 .AddMvc()
                 .AddMvcOptions(c => {
                     c.OutputFormatters.Add(new JsonHalOutputFormatter(
