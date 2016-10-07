@@ -10,7 +10,10 @@ using Newtonsoft.Json;
 using HalKit;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 using System;
+
+using CustomerOrdersApi.Config;
 
 namespace CustomerOrdersApi
 {
@@ -25,6 +28,7 @@ namespace CustomerOrdersApi
         [JsonIgnore]
         [HalEmbedded("customerOrders")]
         public List<CustomerOrder> Orders { get; set; } = new List<CustomerOrder>();
+
         public class ResultPage
         {
             [JsonProperty("size")]
@@ -41,7 +45,10 @@ namespace CustomerOrdersApi
    [Route("/orders")]
    public class ProductsController: Controller
     {
-        private readonly IOptions<AppSettings> _optionsAccessor;
+        private readonly ServiceEndpoints serviceEndpoints;
+
+       private readonly ILogger<ProductsController> logger;
+
 
         private HalClient client = new HalClient(new HalConfiguration());
         private HALAttributeConverter converter = new HALAttributeConverter();
@@ -49,21 +56,25 @@ namespace CustomerOrdersApi
         private MongoRepository<CustomerOrder> customerOrderRepository = 
             new MongoRepository<CustomerOrder>("mongodb://localhost:27017/data", "CustomerOrder");
         
-        public IActionResult Index() => View(_optionsAccessor.Value);
-
-        public ProductsController(IOptions<AppSettings> optionsAccessor)
+        public ProductsController(IOptions<ServiceEndpoints> options, ILogger<ProductsController> logger)
         {
-            _optionsAccessor = optionsAccessor;
-            Console.WriteLine("aaa");
-            Console.WriteLine(optionsAccessor.Value.BaseUrls.Shipping);
-            Console.WriteLine(optionsAccessor.ToString());
+            this.serviceEndpoints = options.Value;
+            this.logger = logger;
+
+            // Access properties through:
+            // serviceEndpoints.PaymentServiceEndpoint;
+            // serviceEndpoints.ShippingServiceEndpoint;
+
+            // Logging can be done as follows:
+            // logger.LogTrace("Hi!");
         }
 
         [HttpGet]
         public IActionResult Get()
         {
-            IEnumerator<CustomerOrder> enumerator = customerOrderRepository.GetEnumerator();
-            OrdersModel model = new OrdersModel();
+            var enumerator = customerOrderRepository.GetEnumerator();
+            var model = new OrdersModel();
+
             while (enumerator.MoveNext())
             {
                 model.Orders.Add(enumerator.Current);
@@ -153,7 +164,5 @@ namespace CustomerOrdersApi
             amount += shipping;
             return amount;
         }
-    }
-
-    
+    }    
 }
