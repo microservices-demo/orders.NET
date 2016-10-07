@@ -159,24 +159,6 @@ namespace CustomerOrdersApi
 
         }
 
-        [HttpPut("{id}")]
-        public IActionResult Update(string id, [FromBody] CustomerOrder item)
-        {
-            if (item == null || item.Id != id)
-            {
-                return BadRequest();
-            }
-
-            // var todo = TodoItems.Find(id);
-            // if (todo == null)
-            // {
-            //     return NotFound();
-            // }
-
-            // TodoItems.Update(item);
-            return new NoContentResult();
-        }
-
         private float CalculateTotal(List<Item> items) {
             float amount = 0F;
             float shipping = 4.99F;
