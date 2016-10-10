@@ -1,12 +1,20 @@
+using HalKit.Models.Response;
+using Newtonsoft.Json;
+
 namespace CustomerOrdersApi.Model
 {
-    public class Address
+    public class Address : Resource
     {
-    private string Id { get; set; }
-    private string Number { get; set; }
-    private string Street { get; set; }
-    private string City { get; set; }
-    private string Postcode { get; set; }
-    private string Country { get; set; }
+        private string Id { get; set; }
+        [JsonProperty(PropertyName = "number")]
+        private string Number { get; set; }
+        [JsonProperty(PropertyName = "street")]
+        private string Street { get; set; }
+        [JsonProperty(PropertyName = "city")]
+        private string City { get; set; }
+        [JsonProperty(PropertyName = "postcode")]
+        private string Postcode { get; set; }
+        [JsonProperty(PropertyName = "country")]
+        private string Country { get; set; }
     }
 }
