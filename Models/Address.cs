@@ -5,6 +5,7 @@ namespace CustomerOrdersApi.Model
 {
     public class Address : Resource
     {
+        [JsonProperty(PropertyName = "id")]
         private string Id { get; set; }
         [JsonProperty(PropertyName = "number")]
         private string Number { get; set; }
