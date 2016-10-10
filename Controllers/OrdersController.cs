@@ -50,7 +50,7 @@ namespace CustomerOrdersApi
         private HALAttributeConverter converter = new HALAttributeConverter();
 
         private MongoRepository<CustomerOrder> customerOrderRepository = 
-            new MongoRepository<CustomerOrder>("mongodb://localhost:27017/data", "CustomerOrder");
+            new MongoRepository<CustomerOrder>("mongodb://orders-db:27017/data", "CustomerOrder");
         
         [HttpGet]
         public IActionResult Get()
@@ -64,10 +64,14 @@ namespace CustomerOrdersApi
             return this.HAL(converter.Convert(model),  HttpStatusCode.OK);
         }
         // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{id}", Name = "GetOffer")]
+        public IActionResult Get(string id)
         {
-            return "value";
+            CustomerOrder order = customerOrderRepository.GetById(id);
+            if(order == null) {
+                    return NotFound();
+            }
+            return new ObjectResult(order);
         }
 
         [HttpPost]
@@ -78,42 +82,31 @@ namespace CustomerOrdersApi
                 return BadRequest();
             }
 
-            List<Task> tasks = new List<Task>();
-            Address address = null;
+            Console.WriteLine("item:" + ToStringNullSafe(JsonConvert.SerializeObject(item)));
+
+           Address address = null;
             Customer customer = null;
             Card card = null;
             List<Item> items = null;
 
-            tasks.Add(Task.Factory.StartNew(async () =>
-            {
-                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Address.AbsolutePath, IsTemplated = false};
-                address = await client.GetAsync<Address>(link);
-            }));
-            tasks.Add(Task.Factory.StartNew(async () =>
-            {
-                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Customer.AbsolutePath, IsTemplated = false};
-                customer = await client.GetAsync<Customer>(link);
-            }));
-            tasks.Add(Task.Factory.StartNew(async () =>
-            {
-                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Card.AbsolutePath, IsTemplated = false};
-                card = await client.GetAsync<Card>(link);
-            }));
-            tasks.Add(Task.Factory.StartNew(async () =>
-            {
-                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef = item.Items.AbsolutePath, IsTemplated = false};
-                items = await client.GetAsync<List<Item>>(link);
-            }));
 
-            Task finalTask = Task.Factory.ContinueWhenAll(
-                tasks.ToArray(),
-                _ =>
-                {
-                });
-            finalTask.Wait();
+           Task.Factory.ContinueWhenAll(
+               new Task[] {
+                   client.GetAsync<Address>(new HalKit.Models.Response.Link {HRef = item.Address.AbsoluteUri, IsTemplated = false})
+                        .ContinueWith((task) => { address = task.Result; }),
+                   client.GetAsync<Customer>(new HalKit.Models.Response.Link {HRef = item.Customer.AbsoluteUri, IsTemplated = false})
+                        .ContinueWith((task) => { customer = task.Result; }),
+                   client.GetAsync<Card>(new HalKit.Models.Response.Link {HRef = item.Card.AbsoluteUri, IsTemplated = false})
+                        .ContinueWith((task) => { card = task.Result; }),
+                   client.GetAsync<List<Item>>(new HalKit.Models.Response.Link {HRef = item.Items.AbsoluteUri, IsTemplated = false})
+                        .ContinueWith((task) => { items = task.Result; })
+                },
+                _ => {})
+                    .Wait();
+
+            PaymentResponse paymentResponse = null;
 
             float amount = CalculateTotal(items);
-
             PaymentRequest paymentRequest = new PaymentRequest() {
                 Address = address,
                 Card = card,
@@ -121,29 +114,27 @@ namespace CustomerOrdersApi
                 Amount = amount
             };
 
-            PaymentResponse paymentResponse = null;
-            Task PaymentResponseTask = Task.Factory.StartNew(async () =>
-            {
-                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef =  "http://payment/paymentAuth", IsTemplated = false};
-                paymentResponse = await client.PostAsync<PaymentResponse>(link, paymentRequest);
-            });
-            PaymentResponseTask.Wait();
+            client.PostAsync<PaymentResponse>(new HalKit.Models.Response.Link {HRef =  "http://payment/paymentAuth", IsTemplated = false}, paymentRequest)
+                    .ContinueWith((task) => { 
+                                    paymentResponse = task.Result; 
+                                    Console.WriteLine("returning:" + ToStringNullSafe(JsonConvert.SerializeObject(paymentResponse)));
+})               .Wait();
             
-            if(!paymentResponse.Authorized) {
+            if(!paymentResponse.Authorised) {
                 return BadRequest();
             }
 
-            string ACustomerId = customer.Id; //ParseId(customer.I)
+            string ACustomerId = customer.Id;
             Shipment Shipment = null;
-            Task ShipmentTask = Task.Factory.StartNew(async () =>
-            {
-                HalKit.Models.Response.Link link = new HalKit.Models.Response.Link {HRef =  "http://shipping/shipping", IsTemplated = false};
                 Shipment AShipment = new Shipment() {
                     Name = ACustomerId
                 };
-                Shipment = await client.PostAsync<Shipment>(link, AShipment);
-            });
-            ShipmentTask.Wait();
+                client.PostAsync<Shipment>(new HalKit.Models.Response.Link {HRef =  "http://shipping/shipping", IsTemplated = false}, AShipment)
+                        .ContinueWith((task) => {
+                                Shipment = task.Result;
+                        })
+                .Wait();
+            Console.WriteLine("Shipment:" + JsonConvert.SerializeObject(Shipment));
 
             CustomerOrder order = new CustomerOrder() {
                 CustomerId = ACustomerId,
@@ -154,9 +145,14 @@ namespace CustomerOrdersApi
                 Total = amount,
                 Shipment = Shipment
             };
-            customerOrderRepository.Add(order);
-            return CreatedAtRoute("GetTodo", new { id = order.Id }, order);
 
+            Console.WriteLine("Order:" + JsonConvert.SerializeObject(order));
+            customerOrderRepository.Add(order);
+            Console.WriteLine("Order2:" + JsonConvert.SerializeObject(order));
+            //return CreatedAtRoute("GetOffer", new { id = order.Id }, order);
+            return new ObjectResult(order) {
+                StatusCode = 201
+            };
         }
 
         private float CalculateTotal(List<Item> items) {
@@ -178,6 +174,10 @@ namespace CustomerOrdersApi
                 return match.Value;
             }
             throw new System.ArgumentException("No match found", href);
+        }
+
+        private string ToStringNullSafe(object value) {
+            return (value ?? string.Empty).ToString();
         }
     }
 }
