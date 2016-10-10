@@ -1,7 +1,9 @@
+using Newtonsoft.Json;
 namespace CustomerOrdersApi.Model
 {
     public class PaymentResponse
     {
-        public bool Authorized { get; set; } = false;
+        [JsonProperty(PropertyName = "authorised")]
+        public bool Authorised { get; set; } = false;
     }
 }
