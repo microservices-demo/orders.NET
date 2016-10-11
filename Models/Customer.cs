@@ -8,9 +8,9 @@ namespace CustomerOrdersApi.Model
     {
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
-        [JsonProperty(PropertyName = "firstname")]
+        [JsonProperty(PropertyName = "firstName")]
         public string FirstName { get; set; }
-        [JsonProperty(PropertyName = "lastname")]
+        [JsonProperty(PropertyName = "lastName")]
         public string LastName { get; set; }
         [JsonProperty(PropertyName = "username")]
         public string Username { get; set; }

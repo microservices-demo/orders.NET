@@ -7,22 +7,24 @@ namespace CustomerOrdersApi.Model
 {
     [CollectionName("CustomerOrder")]
 
-    [HalModel("~/order", true)]
-    [HalLink("self", "order/{ID}")]
     public class CustomerOrder : Entity
     {
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "customerId")]
         public string CustomerId  { get; set; }
+        [JsonProperty(PropertyName = "customer")]
         public Customer Customer { get; set; }
+        [JsonProperty(PropertyName = "address")]
         public Address Address { get; set; }
+        [JsonProperty(PropertyName = "card")]
         public Card Card { get; set; }
         [HalEmbedded("items")]
+        [JsonProperty(PropertyName = "items")]
         public List<Item> Items { get; set; } = new List<Item>{};
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "shipment")]
         public Shipment Shipment { get; set; }
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "date")]
         public DateTime Date { get;  set; } = DateTime.Now;
-        [JsonIgnore]
+        [JsonProperty(PropertyName = "total")]
         public float Total { get; set; }
     }
 }

@@ -136,6 +136,10 @@ namespace CustomerOrdersApi
                 .Wait();
             Console.WriteLine("Shipment:" + JsonConvert.SerializeObject(Shipment));
 
+            customer.Id = null;
+            address.Id = null;
+            card.Id = null;
+
             CustomerOrder order = new CustomerOrder() {
                 CustomerId = ACustomerId,
                 Address = address,

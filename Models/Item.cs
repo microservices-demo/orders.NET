@@ -7,11 +7,11 @@ namespace CustomerOrdersApi.Model
     {   
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
-        [JsonProperty(PropertyName = "itemid")]
+        [JsonProperty(PropertyName = "itemId")]
         public string ItemId { get; set; }
         [JsonProperty(PropertyName = "quantity")]
         public int Quantity { get; set; }
-        [JsonProperty(PropertyName = "unitprice")]
+        [JsonProperty(PropertyName = "unitPrice")]
         public float UnitPrice { get; set; }
     }
 }
