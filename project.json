@@ -17,8 +17,7 @@
     "MongoDB.Driver": "2.3.0",
     "Binbin.MongoRepository": "1.0.1",
     "Halcyon.Mvc": "2.2.0",
-    "HalKit": "0.8.0",
-    "Tavis.UriTemplates": "1.1.0"
+    "HalKit": "0.8.0"
   },
 
   "tools": {
