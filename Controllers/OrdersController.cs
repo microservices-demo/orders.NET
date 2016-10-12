@@ -89,18 +89,39 @@ namespace CustomerOrdersApi
             Card card = null;
             List<Item> items = null;
 
-
            Task.Factory.ContinueWhenAll(
                new Task[] {
                    client.GetAsync<Address>(new HalKit.Models.Response.Link {HRef = item.Address.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => { address = task.Result; }),
+                        .ContinueWith((task) => {
+					Console.WriteLine("returning address:" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
+					address = task.Result;
+					}),
                    client.GetAsync<Customer>(new HalKit.Models.Response.Link {HRef = item.Customer.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => { customer = task.Result; }),
+                        .ContinueWith((task) => {
+					Console.WriteLine("returning customer:" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
+					customer = task.Result; }),
                    client.GetAsync<Card>(new HalKit.Models.Response.Link {HRef = item.Card.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => { card = task.Result; }),
-                   client.GetAsync<List<Item>>(new HalKit.Models.Response.Link {HRef = item.Items.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => { items = task.Result; })
-                },
+                        .ContinueWith((task) => {
+					Console.WriteLine("returning card:" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
+					card = task.Result; }),
+			Task.Factory.StartNew( () =>
+					{
+					try{
+					client.GetAsync<List<Item>>(new HalKit.Models.Response.Link {HRef = item.Items.AbsoluteUri, IsTemplated = false}
+							, new Dictionary<string, string> ()
+							, new Dictionary<string, IEnumerable<string>>
+							{
+							  {"Accept", new[] {"application/json", "application/hal+json"}}
+
+							})
+					.ContinueWith((task) => {
+							Console.WriteLine("returning items from " + item.Items.AbsoluteUri + " :" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
+							items = task.Result; }).Wait();
+					} catch (Exception e) {
+						Console.WriteLine("Exception : " + e.ToString()); 
+					}
+					})
+	       },
                 _ => {})
                     .Wait();
 
