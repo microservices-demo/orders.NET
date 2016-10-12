@@ -90,40 +90,18 @@ namespace CustomerOrdersApi
             List<Item> items = null;
 
            Task.Factory.ContinueWhenAll(
-               new Task[] {
-                   client.GetAsync<Address>(new HalKit.Models.Response.Link {HRef = item.Address.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => {
-					Console.WriteLine("returning address:" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
-					address = task.Result;
-					}),
-                   client.GetAsync<Customer>(new HalKit.Models.Response.Link {HRef = item.Customer.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => {
-					Console.WriteLine("returning customer:" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
-					customer = task.Result; }),
-                   client.GetAsync<Card>(new HalKit.Models.Response.Link {HRef = item.Card.AbsoluteUri, IsTemplated = false})
-                        .ContinueWith((task) => {
-					Console.WriteLine("returning card:" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
-					card = task.Result; }),
-			Task.Factory.StartNew( () =>
-					{
-					try{
-					client.GetAsync<List<Item>>(new HalKit.Models.Response.Link {HRef = item.Items.AbsoluteUri, IsTemplated = false}
-							, new Dictionary<string, string> ()
-							, new Dictionary<string, IEnumerable<string>>
-							{
-							  {"Accept", new[] {"application/json", "application/hal+json"}}
-
-							})
-					.ContinueWith((task) => {
-							Console.WriteLine("returning items from " + item.Items.AbsoluteUri + " :" + ToStringNullSafe(JsonConvert.SerializeObject(task.Result)));
-							items = task.Result; }).Wait();
-					} catch (Exception e) {
-						Console.WriteLine("Exception : " + e.ToString()); 
-					}
-					})
-	       },
-                _ => {})
-                    .Wait();
+                new Task[] {
+                        createHalAsyncTask<Address>(item.Address.AbsoluteUri)
+                            .ContinueWith((task) => { address = task.Result; }),
+                        createHalAsyncTask<Customer>(item.Customer.AbsoluteUri)
+                            .ContinueWith((task) => { customer = task.Result; }),
+                        createHalAsyncTask<Card>(item.Card.AbsoluteUri)
+                            .ContinueWith((task) => { card = task.Result; }),
+                        createHalAsyncTask<List<Item>>(item.Items.AbsoluteUri)
+                            .ContinueWith((task) => { items = task.Result; })
+                    },
+                    _ => {})
+                .Wait();
 
             PaymentResponse paymentResponse = null;
 
@@ -204,5 +182,15 @@ namespace CustomerOrdersApi
         private string ToStringNullSafe(object value) {
             return (value ?? string.Empty).ToString();
         }
+
+     Task<T> createHalAsyncTask<T>(this string link) {
+        return client.GetAsync<Address>(new HalKit.Models.Response.Link {HRef = link, IsTemplated = false}
+        , new Dictionary<string, string> ()
+        , new Dictionary<string, IEnumerable<string>>
+        {
+            {"Accept", new[] {"application/hal+json", "application/json"}}
+
+        });
+     }
     }
 }
