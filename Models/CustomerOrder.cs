@@ -1,12 +1,9 @@
 using System.Collections.Generic;
 using System;
-using MongoRepository;
 using Newtonsoft.Json;
 using Halcyon.HAL.Attributes;
 namespace CustomerOrdersApi.Model
 {
-    [CollectionName("CustomerOrder")]
-
     public class CustomerOrder : Entity
     {
         [JsonProperty(PropertyName = "customerId")]
