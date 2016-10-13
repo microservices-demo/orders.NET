@@ -17,11 +17,11 @@ using System.Text.RegularExpressions;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-
+using MongoDB.Bson.Serialization;
 
 namespace CustomerOrdersApi
 {
-    [HalModel("~/", true)]
+    [HalModel("http://orders/", true)]
     [HalLink("self", "/orders")]
     [HalLink("profile", "profile/orders")]
     [HalLink("search", "orders/search")]
@@ -81,7 +81,7 @@ namespace CustomerOrdersApi
             if(order == null) {
                 return NotFound();
             }
-            return new ObjectResult(order);
+            return this.HAL(converter.Convert(order), HttpStatusCode.OK);
         }
 
         [HttpGet, Route("search/customerId/{custId?}/{sort=date}")]
@@ -200,6 +200,9 @@ namespace CustomerOrdersApi
                 , new Dictionary<string, string> ()
                 , new Dictionary<string, IEnumerable<string>>
                 {
+                    // it's needed to avoid
+                    // org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation
+                    // from a spring based server
                     {"Accept", new[] {"application/hal+json", "application/json"}}
                 });
         }

@@ -2,10 +2,8 @@ using HalKit.Models.Response;
 using Newtonsoft.Json;
 namespace CustomerOrdersApi.Model
 {
-    public class Card : Resource
+    public class Card : Entity
     {
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
         [JsonProperty(PropertyName = "longNum")]
         private string LongNum { get; set; }
         [JsonProperty(PropertyName = "expires")]

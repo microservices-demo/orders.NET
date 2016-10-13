@@ -3,10 +3,8 @@ using Newtonsoft.Json;
 
 namespace CustomerOrdersApi.Model
 {
-    public class Item : Resource
+    public class Item : Entity
     {   
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
         [JsonProperty(PropertyName = "itemId")]
         public string ItemId { get; set; }
         [JsonProperty(PropertyName = "quantity")]
