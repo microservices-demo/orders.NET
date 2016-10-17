@@ -20,10 +20,5 @@ namespace CustomerOrdersApi.Model
 
         [JsonProperty(PropertyName = "contry")]
         public string Country { get; set; }
-
-        [JsonProperty(PropertyName = "addresses")]
-        public List<Address> Addresses { get; set; } = new List<Address>{};
-        [JsonProperty(PropertyName = "cards")]
-        public List<Card> Cards { get; set; } = new List<Card>{};
     }
 }
