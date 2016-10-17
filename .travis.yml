@@ -5,7 +5,7 @@ services:
 install: true
 
 env:
-  - GROUP=weaveworksdemos COMMIT=$TRAVIS_COMMIT TAG=$TRAVIS_TAG REPO=orders;
+  - GROUP=weaveworksdemos COMMIT=$TRAVIS_COMMIT TAG=$TRAVIS_TAG REPO=orders.net;
 
 script:
   - set -e
