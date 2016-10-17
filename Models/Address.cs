@@ -18,7 +18,7 @@ namespace CustomerOrdersApi.Model
         [JsonProperty(PropertyName = "postcode")]
         public string Postcode { get; set; }
 
-        [JsonProperty(PropertyName = "contry")]
+        [JsonProperty(PropertyName = "country")]
         public string Country { get; set; }
     }
 }
