@@ -1,4 +1,6 @@
 using HalKit.Models.Response;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace CustomerOrdersApi.Model

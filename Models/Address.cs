@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using HalKit.Models.Response;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 
 namespace CustomerOrdersApi.Model
@@ -6,14 +9,21 @@ namespace CustomerOrdersApi.Model
     public class Address : Entity
     {
         [JsonProperty(PropertyName = "number")]
-        private string Number { get; set; }
+        public string Number { get; set; }
         [JsonProperty(PropertyName = "street")]
-        private string Street { get; set; }
+        public string Street { get; set; }
         [JsonProperty(PropertyName = "city")]
-        private string City { get; set; }
+        public string City { get; set; }
+
         [JsonProperty(PropertyName = "postcode")]
-        private string Postcode { get; set; }
-        [JsonProperty(PropertyName = "country")]
-        private string Country { get; set; }
+        public string Postcode { get; set; }
+
+        [JsonProperty(PropertyName = "contry")]
+        public string Country { get; set; }
+
+        [JsonProperty(PropertyName = "addresses")]
+        public List<Address> Addresses { get; set; } = new List<Address>{};
+        [JsonProperty(PropertyName = "cards")]
+        public List<Card> Cards { get; set; } = new List<Card>{};
     }
 }

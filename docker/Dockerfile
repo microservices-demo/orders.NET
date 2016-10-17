@@ -8,6 +8,6 @@ RUN ["dotnet", "restore"]
 RUN apt-get update && apt-get install -y tcpdump jq
 RUN ["dotnet", "build"]
 
-EXPOSE 5000/tcp
+EXPOSE 80/tcp
 
-ENTRYPOINT ["dotnet", "run", "--server.urls", "http://0.0.0.0:5000"]
+ENTRYPOINT ["dotnet", "run", "--server.urls", "http://0.0.0.0:80"]

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 using Microsoft.AspNetCore.Mvc;
-using Halcyon.HAL;
 using Halcyon.HAL.Attributes;
 using Halcyon.Web.HAL;
 using CustomerOrdersApi.Model;
@@ -9,15 +8,8 @@ using System.Net;
 using Newtonsoft.Json;
 using HalKit;
 using System.Threading.Tasks;
-using System.Runtime.Serialization;
-using HalKit.Models.Response;
 using System;
-using System.Threading;
-using System.Text.RegularExpressions;
-using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
-using MongoDB.Bson.Serialization;
 
 namespace CustomerOrdersApi
 {
@@ -160,10 +152,6 @@ namespace CustomerOrdersApi
                 .Wait();
             Console.WriteLine("Shipment:" + JsonConvert.SerializeObject(Shipment));
 
-            customer.Id = null;
-            address.Id = null;
-            card.Id = null;
-
             CustomerOrder order = new CustomerOrder() {
                 CustomerId = ACustomerId,
                 Address = address,
@@ -178,6 +166,11 @@ namespace CustomerOrdersApi
             collection.InsertOne(order);
             Console.WriteLine("Order2:" + JsonConvert.SerializeObject(order));
             //return CreatedAtRoute("GetOffer", new { id = order.Id }, order);
+
+            customer.Id = null;
+            address.Id = null;
+            card.Id = null;
+
             return new ObjectResult(order) {
                 StatusCode = 201
             };
