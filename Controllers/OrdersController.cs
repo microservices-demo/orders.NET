@@ -45,7 +45,7 @@ namespace CustomerOrdersApi
    [Route("/orders")]
    public class ProductsController: Controller
     {
-        private readonly ServiceEndpoints serviceEndpoints;
+        private readonly AppSettings AppSettings;
 
         private readonly ILogger<ProductsController> logger;
 
@@ -53,13 +53,14 @@ namespace CustomerOrdersApi
         private HalClient client = new HalClient(new HalConfiguration());
         private HALAttributeConverter converter = new HALAttributeConverter();
 
-        private MongoClient dbClient = new MongoClient("mongodb://orders-db:27017");
+        private MongoClient dbClient;
         private IMongoCollection<CustomerOrder> collection;
-        public ProductsController(IOptions<ServiceEndpoints> options, ILogger<ProductsController> logger) : base()
+        public ProductsController(IOptions<AppSettings> options, ILogger<ProductsController> logger) : base()
         {
-            this.serviceEndpoints = options.Value;
+            this.AppSettings = options.Value;
             this.logger = logger;
-            IMongoDatabase database = dbClient.GetDatabase("data");
+            dbClient = new MongoClient(AppSettings.Data.MongoConnection.ConnectionString);
+            IMongoDatabase database = dbClient.GetDatabase(AppSettings.Data.MongoConnection.Database);
             collection = database.GetCollection<CustomerOrder>("CustomerOrder");
         }
 
@@ -142,7 +143,7 @@ namespace CustomerOrdersApi
                 Amount = amount
             };
 
-            client.PostAsync<PaymentResponse>(new HalKit.Models.Response.Link {HRef =  serviceEndpoints.PaymentServiceEndpoint, IsTemplated = false}, paymentRequest)
+            client.PostAsync<PaymentResponse>(new HalKit.Models.Response.Link {HRef =  AppSettings.ServiceEndpoints.PaymentServiceEndpoint, IsTemplated = false}, paymentRequest)
                 .ContinueWith((task) => {
                     paymentResponse = task.Result;
                 })
@@ -157,7 +158,7 @@ namespace CustomerOrdersApi
                 Shipment AShipment = new Shipment() {
                     Name = ACustomerId
                 };
-                client.PostAsync<Shipment>(new HalKit.Models.Response.Link {HRef =  serviceEndpoints.ShippingServiceEndpoint, IsTemplated = false}, AShipment)
+                client.PostAsync<Shipment>(new HalKit.Models.Response.Link {HRef =  AppSettings.ServiceEndpoints.ShippingServiceEndpoint, IsTemplated = false}, AShipment)
                 .ContinueWith((task) => {
                     Shipment = task.Result;
                 })

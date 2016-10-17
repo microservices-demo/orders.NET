@@ -33,7 +33,7 @@ namespace CustomerOrdersApi
 
             services
                 .AddOptions()
-                .Configure<ServiceEndpoints>(Configuration.GetSection("ServiceEndpoints"))
+                .Configure<AppSettings>(Configuration)
                 .AddMvc()
                 .AddMvcOptions(c => {
                     c.OutputFormatters.Add(new JsonHalOutputFormatter(
