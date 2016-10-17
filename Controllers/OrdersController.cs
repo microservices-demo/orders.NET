@@ -61,7 +61,7 @@ namespace CustomerOrdersApi
             this.logger = logger;
             dbClient = new MongoClient(AppSettings.Data.MongoConnection.ConnectionString);
             IMongoDatabase database = dbClient.GetDatabase(AppSettings.Data.MongoConnection.Database);
-            collection = database.GetCollection<CustomerOrder>("CustomerOrder");
+            collection = database.GetCollection<CustomerOrder>("customerOrder");
         }
 
         [HttpGet]
@@ -111,9 +111,6 @@ namespace CustomerOrdersApi
             {
                 return BadRequest();
             }
-
-            Console.WriteLine("item:" + ToStringNullSafe(JsonConvert.SerializeObject(item)));
-
             Address address = null;
             Customer customer = null;
             Card card = null;

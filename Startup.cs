@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using CustomerOrdersApi.Config;
+using MongoDB.Bson.Serialization.Conventions;
 
 namespace CustomerOrdersApi
 {
@@ -22,6 +23,11 @@ namespace CustomerOrdersApi
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
+
+            var pack = new ConventionPack();
+            pack.Add(new CamelCaseElementNameConvention());
+            ConventionRegistry.Register("camel case", pack, t => true);
+
             Configuration = builder.Build();
         }
 
