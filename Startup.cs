@@ -6,27 +6,34 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using CustomerOrdersApi.Config;
 
 namespace CustomerOrdersApi
 {
     public class Startup
     {
+        public IConfigurationRoot Configuration { get; set; }
 
-        public Startup(IHostingEnvironment env) {
+        public Startup(IHostingEnvironment env)
+        {
             // Set up configuration sources.
             var builder = new ConfigurationBuilder()
-                // .AddJsonFile("appsettings.json")
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
-        public IConfigurationRoot Configuration { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             var outputSettings = JsonSerializerSettingsProvider.CreateSerializerSettings();
+
             services
+                .AddOptions()
+                .Configure<ServiceEndpoints>(Configuration.GetSection("ServiceEndpoints"))
                 .AddMvc()
                 .AddMvcOptions(c => {
                     c.OutputFormatters.Add(new JsonHalOutputFormatter(
@@ -39,7 +46,8 @@ namespace CustomerOrdersApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddConsole();
+            // Adds the console logger with minimum loglevel 'Trace'
+            loggerFactory.AddConsole(LogLevel.Trace);
 
             app.UseMvc();
 

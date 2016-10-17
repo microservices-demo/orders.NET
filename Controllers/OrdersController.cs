@@ -10,6 +10,10 @@ using HalKit;
 using System.Threading.Tasks;
 using System;
 using MongoDB.Driver;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+
+using CustomerOrdersApi.Config;
 
 namespace CustomerOrdersApi
 {
@@ -24,6 +28,7 @@ namespace CustomerOrdersApi
         [JsonIgnore]
         [HalEmbedded("customerOrders")]
         public List<CustomerOrder> Orders { get; set; } = new List<CustomerOrder>();
+
         public class ResultPage
         {
             [JsonProperty("size")]
@@ -40,13 +45,20 @@ namespace CustomerOrdersApi
    [Route("/orders")]
    public class ProductsController: Controller
     {
+        private readonly ServiceEndpoints serviceEndpoints;
+
+        private readonly ILogger<ProductsController> logger;
+
+
         private HalClient client = new HalClient(new HalConfiguration());
         private HALAttributeConverter converter = new HALAttributeConverter();
 
-        private MongoClient dbClient = new MongoClient("mongodb://orders-db:27017/data");
+        private MongoClient dbClient = new MongoClient("mongodb://orders-db:27017");
         private IMongoCollection<CustomerOrder> collection;
-        public ProductsController() : base()
+        public ProductsController(IOptions<ServiceEndpoints> options, ILogger<ProductsController> logger) : base()
         {
+            this.serviceEndpoints = options.Value;
+            this.logger = logger;
             IMongoDatabase database = dbClient.GetDatabase("data");
             collection = database.GetCollection<CustomerOrder>("CustomerOrder");
         }
@@ -56,6 +68,7 @@ namespace CustomerOrdersApi
         {
             IEnumerator<CustomerOrder> enumerator = collection.AsQueryable<CustomerOrder>().GetEnumerator();
             OrdersModel model = new OrdersModel();
+
             while (enumerator.MoveNext())
             {
                 model.Orders.Add(enumerator.Current);
@@ -129,10 +142,9 @@ namespace CustomerOrdersApi
                 Amount = amount
             };
 
-            client.PostAsync<PaymentResponse>(new HalKit.Models.Response.Link {HRef =  "http://payment/paymentAuth", IsTemplated = false}, paymentRequest)
+            client.PostAsync<PaymentResponse>(new HalKit.Models.Response.Link {HRef =  serviceEndpoints.PaymentServiceEndpoint, IsTemplated = false}, paymentRequest)
                 .ContinueWith((task) => {
                     paymentResponse = task.Result;
-                    Console.WriteLine("returning:" + ToStringNullSafe(JsonConvert.SerializeObject(paymentResponse)));
                 })
                .Wait();
             
@@ -145,12 +157,11 @@ namespace CustomerOrdersApi
                 Shipment AShipment = new Shipment() {
                     Name = ACustomerId
                 };
-                client.PostAsync<Shipment>(new HalKit.Models.Response.Link {HRef =  "http://shipping/shipping", IsTemplated = false}, AShipment)
-                    .ContinueWith((task) => {
-                            Shipment = task.Result;
-                    })
+                client.PostAsync<Shipment>(new HalKit.Models.Response.Link {HRef =  serviceEndpoints.ShippingServiceEndpoint, IsTemplated = false}, AShipment)
+                .ContinueWith((task) => {
+                    Shipment = task.Result;
+                })
                 .Wait();
-            Console.WriteLine("Shipment:" + JsonConvert.SerializeObject(Shipment));
 
             CustomerOrder order = new CustomerOrder() {
                 CustomerId = ACustomerId,
@@ -162,9 +173,7 @@ namespace CustomerOrdersApi
                 Shipment = Shipment
             };
 
-            Console.WriteLine("Order:" + JsonConvert.SerializeObject(order));
             collection.InsertOne(order);
-            Console.WriteLine("Order2:" + JsonConvert.SerializeObject(order));
             //return CreatedAtRoute("GetOffer", new { id = order.Id }, order);
 
             customer.Id = null;

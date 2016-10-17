@@ -1,7 +1,6 @@
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using MongoDB.Driver;
 
 namespace CustomerOrdersApi
 {
