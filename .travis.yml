@@ -22,7 +22,7 @@ after_success:
 
 before_install:
 - openssl aes-256-cbc -K $encrypted_3f03c979859d_key -iv $encrypted_3f03c979859d_iv
-  -in ${REPO}_deploy_rsa.enc -out orders_deploy_rsa -d
+  -in orders.net_deploy_rsa.enc -out orders.net_deploy_rsa -d
 before_deploy:
   - eval "$(ssh-agent -s)"
   - chmod 600 $TRAVIS_BUILD_DIR/${REPO}_deploy_rsa
