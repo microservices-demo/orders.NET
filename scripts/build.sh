@@ -28,5 +28,6 @@ echo $CODE_DIR
 for m in ./docker/*/; do
     REPO=${GROUP}/$(basename $m)
     IMAGE="$(tr [A-Z] [a-z] <<< "$REPO")"
-    $DOCKER_CMD build -t ${IMAGE}:${COMMIT} $CODE_DIR/$m;
+    echo $DOCKER_CMD build -t ${IMAGE}:${COMMIT} -f $CODE_DIR/$m $CODE_DIR;
+    $DOCKER_CMD build -t ${IMAGE}:${COMMIT} -f $CODE_DIR/$m $CODE_DIR;
 done;
