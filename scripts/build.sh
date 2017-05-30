@@ -2,9 +2,6 @@
 
 set -ev
 
-git submodule update --init --recursive
-rm -fr HalKit/tests/
-
 SCRIPT_DIR=$(dirname "$0")
 
 if [[ -z "$GROUP" ]] ; then
