@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/microservices-demo/orders.net.svg?branch=master)](https://travis-ci.org/microservices-demo/orders.net) [![Coverage Status](https://coveralls.io/repos/github/microservices-demo/orders.net/badge.svg?branch=master)](https://coveralls.io/github/microservices-demo/orders.net?branch=master)
 [![](https://images.microbadger.com/badges/image/weaveworksdemos/orders.net.svg)](http://microbadger.com/images/weaveworksdemos/orders.net "Get your own image badge on microbadger.com")
 
-# Orders.NET
+# DEPRECATED: Orders.NET
 A microservices-demo service that provides ordering capabilities.
 
 # Generic ASP.NET Core links
